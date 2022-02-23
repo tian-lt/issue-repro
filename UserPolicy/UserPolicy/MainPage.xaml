@@ -1,0 +1,25 @@
+﻿<Page
+    x:Class="UserPolicy.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:UserPolicy"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <Grid Margin="6">
+        <StackPanel>
+            <TextBlock>
+                <Run Text="Refreshed count: "/>
+                <Run Text="{x:Bind RefreshedCount, Mode=OneWay}"/>
+            </TextBlock>
+            <TextBlock>
+                <Run Text="Calculator Graphing mode:"/>
+                <Run Text="{x:Bind GraphingModeState, Mode=OneWay}"
+                     FontWeight="Bold"
+                     Foreground="{x:Bind local:MainPage.GreenIf(GraphingModeState), Mode=OneWay}"/>
+            </TextBlock>
+        </StackPanel>
+    </Grid>
+</Page>
