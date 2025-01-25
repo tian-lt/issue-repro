@@ -28,6 +28,11 @@ namespace {
     if (static_cast<bool>(std::forward<T>(value)) == false) { std::terminate(); }
   }
 
+  int ScalePx(int value) {
+    auto dpi = GetDpiForSystem();
+    return MulDiv(value, (int)dpi, USER_DEFAULT_SCREEN_DPI);
+  }
+
 } // namespace
 
 class AppWindow {
@@ -36,6 +41,7 @@ private:
 
 public:
   static constexpr WORD UserCommandBase = 1000;
+  static constexpr DPI_AWARENESS_CONTEXT DpiContext = DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2;
 
   void Run() {
     MSG msg;
@@ -51,7 +57,7 @@ public:
     check_bool(clss);
     wnd.hwnd_ = CreateWindowEx(
       0, WindowClassName, TEXT("RTF Inspector"), WS_OVERLAPPEDWINDOW, CW_USEDEFAULT,
-      CW_USEDEFAULT, 800, 800, nullptr, nullptr, hinst, &wnd);
+      CW_USEDEFAULT, ScalePx(800), ScalePx(800), nullptr, nullptr, hinst, &wnd);
     check_bool(wnd.hwnd_);
     wnd.CreateBuiltinControls();
     UpdateWindow(wnd.hwnd_);
@@ -139,7 +145,7 @@ private:
       nullptr);
     check_bool(txtCounter_);
     redit_ = CreateWindowEx(0, MSFTEDIT_CLASS, nullptr,
-      ES_MULTILINE | WS_VISIBLE | WS_CHILD | WS_BORDER | WS_TABSTOP,
+      ES_MULTILINE | WS_VISIBLE | WS_CHILD | WS_BORDER | WS_TABSTOP | WS_VSCROLL,
       0, 0, 0, 0,
       hwnd_, NULL, hinst, NULL);
     check_bool(redit_);
@@ -155,10 +161,10 @@ private:
     auto totalHeight = clientRc.bottom - clientRc.top;
     auto totalWidth = clientRc.right - clientRc.left;
 
-    auto row1 = 36;
+    auto row1 = 46;
     totalHeight -= row1; // row #1 for the static text area
     SetWindowPos(redit_, nullptr, 0, row1, totalWidth, totalHeight / 2, SWP_NOZORDER);
-    SetWindowPos(edit_, nullptr, 0, totalHeight / 2, totalWidth, totalHeight / 2, SWP_NOZORDER);
+    SetWindowPos(edit_, nullptr, 0, totalHeight / 2 + row1, totalWidth, totalHeight / 2, SWP_NOZORDER);
   }
 
 private:
