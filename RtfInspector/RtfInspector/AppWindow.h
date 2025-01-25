@@ -5,6 +5,8 @@
 #include <functional>
 #include <string>
 #include <exception>
+#include <sstream>
+#include <filesystem>
 
 // windows headers
 #include <Windows.h>
@@ -90,7 +92,10 @@ private:
     LPARAM lparam) {
     switch (msg) {
     case WM_COMMAND:
-      if (DispatchCommand(hwnd, LOWORD(wparam))) {
+      if (HIWORD(wparam) == EN_CHANGE) {
+        GetThis(hwnd)->OnRichEditChange();
+      }
+      else if (DispatchCommand(hwnd, LOWORD(wparam))) {
         return 0;
       }
       break;
@@ -149,6 +154,7 @@ private:
       0, 0, 0, 0,
       hwnd_, NULL, hinst, NULL);
     check_bool(redit_);
+    SendMessage(redit_, EM_SETEVENTMASK, 0, ENM_CHANGE);
     edit_ = CreateWindowEx(0, TEXT("EDIT"), nullptr, WS_CHILD | WS_VISIBLE | WS_VSCROLL | WS_BORDER |
       ES_LEFT | ES_MULTILINE | ES_AUTOVSCROLL, 0, 0, 0, 0, hwnd_, nullptr, hinst, nullptr);
     check_bool(edit_);
@@ -165,6 +171,21 @@ private:
     totalHeight -= row1; // row #1 for the static text area
     SetWindowPos(redit_, nullptr, 0, row1, totalWidth, totalHeight / 2, SWP_NOZORDER);
     SetWindowPos(edit_, nullptr, 0, totalHeight / 2 + row1, totalWidth, totalHeight / 2, SWP_NOZORDER);
+  }
+
+  static DWORD CALLBACK RichEditRTFStreamOut(DWORD_PTR cookie, LPBYTE buff, LONG cb, LONG* pcb) {
+    auto stream = (std::stringstream*)cookie;
+    stream->write((const char*)buff, cb);
+    *pcb = cb;
+    return 0;
+  }
+
+  void OnRichEditChange() {
+    std::stringstream stream;
+    EDITSTREAM es{ .dwCookie = (DWORD_PTR)&stream, .pfnCallback = RichEditRTFStreamOut };
+    SendMessage(redit_, EM_STREAMOUT, (CP_UTF8 << 16) | SF_USECODEPAGE | SF_RTF, (LPARAM)&es);
+    std::filesystem::path conv = (const char8_t*)stream.str().data();
+    SetWindowTextW(edit_, conv.wstring().c_str());
   }
 
 private:
