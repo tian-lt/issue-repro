@@ -183,7 +183,7 @@ private:
   void OnRichEditChange() {
     std::stringstream stream;
     EDITSTREAM es{ .dwCookie = (DWORD_PTR)&stream, .pfnCallback = RichEditRTFStreamOut };
-    SendMessage(redit_, EM_STREAMOUT, (CP_UTF8 << 16) | SF_USECODEPAGE | SF_RTF, (LPARAM)&es);
+    SendMessage(redit_, EM_STREAMOUT, (CP_UTF8 << 16) | SF_USECODEPAGE | SF_RTF | SFF_PLAINRTF, (LPARAM)&es);
     std::filesystem::path conv = (const char8_t*)stream.str().data();
     SetWindowTextW(edit_, conv.wstring().c_str());
   }
